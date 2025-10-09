@@ -136,10 +136,10 @@ Esta aplicación convierte cualquier imagen en una visualización 3D de ondas de
 ## ✨ **Instalación y Ejecución**
 
 ```bash
-git clone https://github.com/tuusuario/visualizacion-ondas-color.git
-cd visualizacion-ondas-color
+git clone https://github.com/MiKelSX/proy_senales.git
+cd proy_senales
 pip install PyQt6 numpy Pillow pyqtgraph PyOpenGL
-python main.py
+python app.py
 ```
 
 ---
@@ -161,7 +161,7 @@ Por favor, abre un issue o pull request para sugerencias, mejoras o reporte de e
 
 ## 📄 **Licencia**
 
-MIT © [TuNombre2025](https://github.com/tuusuario)
+MIT © [MiKelSX](https://github.com/MiKelSX)
 
 ---
 
