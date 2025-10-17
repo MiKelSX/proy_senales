@@ -10,6 +10,8 @@ import pyqtgraph.opengl as gl
 from pyqtgraph import PlotWidget
 import pyqtgraph as pg
 from PIL import Image
+from scipy.signal import find_peaks
+from scipy.interpolate import interp1d
 
 class AnimatedButton(QPushButton):
     def __init__(self, text, parent=None):
@@ -427,22 +429,310 @@ class ResultsWindow(QMainWindow):
         charts_container.setLayout(charts_grid)
         self.main_layout.addWidget(charts_container)
         
-        # Animación de barras de frecuencias dominantes
+        # Sección FFT 2D - Proyecciones
+        fft_section = QLabel("🔬 TRANSFORMADA DE FOURIER 2D - PROYECCIONES")
+        fft_section.setStyleSheet("""
+            QLabel {
+                color: #FFFFFF;
+                font-size: 16px;
+                font-weight: 700;
+                font-family: 'Segoe UI', sans-serif;
+                padding: 12px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #6478FF, stop:1 #8296FF);
+                border-radius: 12px;
+                margin-top: 10px;
+            }
+        """)
+        self.main_layout.addWidget(fft_section)
+        
+        fft_grid = QGridLayout()
+        fft_grid.setSpacing(10)
+        
+        # Crear colormaps personalizados compatibles
+        def create_colormap(name):
+            if name == 'viridis':
+                colors = np.array([
+                    [68, 1, 84], [72, 40, 120], [62, 73, 137], [49, 104, 142],
+                    [38, 130, 142], [31, 158, 137], [53, 183, 121], [109, 205, 89],
+                    [180, 222, 44], [253, 231, 37]
+                ])
+            elif name == 'plasma':
+                colors = np.array([
+                    [13, 8, 135], [75, 3, 161], [125, 3, 168], [168, 34, 150],
+                    [203, 70, 121], [229, 107, 93], [248, 148, 65], [253, 195, 40],
+                    [246, 243, 75], [240, 249, 33]
+                ])
+            elif name == 'inferno':
+                colors = np.array([
+                    [0, 0, 4], [40, 11, 84], [101, 21, 110], [159, 42, 99],
+                    [212, 72, 66], [245, 125, 21], [250, 193, 39], [245, 251, 134],
+                    [252, 255, 164], [252, 255, 164]
+                ])
+            elif name == 'hot':
+                colors = np.array([
+                    [0, 0, 0], [128, 0, 0], [255, 0, 0], [255, 128, 0],
+                    [255, 255, 0], [255, 255, 128], [255, 255, 255], [255, 255, 255],
+                    [255, 255, 255], [255, 255, 255]
+                ])
+            elif name == 'turbo':
+                colors = np.array([
+                    [48, 18, 59], [62, 73, 137], [33, 145, 140], [53, 183, 121],
+                    [109, 205, 89], [180, 222, 44], [251, 206, 34], [248, 148, 65],
+                    [238, 63, 51], [122, 4, 3]
+                ])
+            else:
+                colors = np.array([[0, 0, 255], [255, 0, 0]])
+            
+            # Interpolar para 256 niveles
+            from scipy.interpolate import interp1d
+            x = np.linspace(0, 1, len(colors))
+            x_new = np.linspace(0, 1, 256)
+            r_interp = interp1d(x, colors[:, 0], kind='cubic')
+            g_interp = interp1d(x, colors[:, 1], kind='cubic')
+            b_interp = interp1d(x, colors[:, 2], kind='cubic')
+            
+            lut = np.zeros((256, 3), dtype=np.ubyte)
+            lut[:, 0] = np.clip(r_interp(x_new), 0, 255).astype(np.ubyte)
+            lut[:, 1] = np.clip(g_interp(x_new), 0, 255).astype(np.ubyte)
+            lut[:, 2] = np.clip(b_interp(x_new), 0, 255).astype(np.ubyte)
+            
+            return lut
+        
+        # FFT 2D - Vista XY (Magnitud)
+        fft_xy_mag = pg.ImageItem(magnitude_log)
+        fft_xy_mag.setLookupTable(create_colormap('viridis'))
+        fft_xy_plot = PlotWidget()
+        fft_xy_plot.setBackground('#1A1A2A')
+        fft_xy_plot.setFixedHeight(200)
+        fft_xy_plot.addItem(fft_xy_mag)
+        fft_xy_plot.setAspectLocked(True)
+        fft_xy_plot.setLabel('left', 'Y')
+        fft_xy_plot.setLabel('bottom', 'X')
+        
+        # FFT 2D - Vista XZ (Proyección lateral)
+        fft_xz = np.sum(magnitude_log, axis=0)
+        fft_xz_norm = (fft_xz - fft_xz.min()) / (fft_xz.max() - fft_xz.min() + 1e-10)
+        fft_xz_2d = np.tile(fft_xz_norm, (50, 1))
+        fft_xz_img = pg.ImageItem(fft_xz_2d)
+        fft_xz_img.setLookupTable(create_colormap('plasma'))
+        fft_xz_plot = PlotWidget()
+        fft_xz_plot.setBackground('#1A1A2A')
+        fft_xz_plot.setFixedHeight(200)
+        fft_xz_plot.addItem(fft_xz_img)
+        fft_xz_plot.setLabel('left', 'Z (Magnitud)')
+        fft_xz_plot.setLabel('bottom', 'X')
+        
+        # FFT 2D - Vista YZ (Proyección frontal)
+        fft_yz = np.sum(magnitude_log, axis=1)
+        fft_yz_norm = (fft_yz - fft_yz.min()) / (fft_yz.max() - fft_yz.min() + 1e-10)
+        fft_yz_2d = np.tile(fft_yz_norm.reshape(-1, 1), (1, 50))
+        fft_yz_img = pg.ImageItem(fft_yz_2d)
+        fft_yz_img.setLookupTable(create_colormap('inferno'))
+        fft_yz_plot = PlotWidget()
+        fft_yz_plot.setBackground('#1A1A2A')
+        fft_yz_plot.setFixedHeight(200)
+        fft_yz_plot.addItem(fft_yz_img)
+        fft_yz_plot.setLabel('left', 'Y')
+        fft_yz_plot.setLabel('bottom', 'Z (Magnitud)')
+        
+        fft_grid.addWidget(self.create_chart_card("📐 FFT 2D - Plano XY (Magnitud)", fft_xy_plot), 0, 0)
+        fft_grid.addWidget(self.create_chart_card("📏 FFT 2D - Plano XZ (Proyección)", fft_xz_plot), 0, 1)
+        fft_grid.addWidget(self.create_chart_card("📊 FFT 2D - Plano YZ (Proyección)", fft_yz_plot), 0, 2)
+        
+        fft_container = QWidget()
+        fft_container.setLayout(fft_grid)
+        self.main_layout.addWidget(fft_container)
+        
+        # Sección análisis Fourier avanzado
+        fourier_section = QLabel("🌊 ANÁLISIS DE FOURIER COMPLETO")
+        fourier_section.setStyleSheet(fft_section.styleSheet())
+        self.main_layout.addWidget(fourier_section)
+        
+        fourier_grid = QGridLayout()
+        fourier_grid.setSpacing(10)
+        
+        # Componentes real e imaginaria
+        real_part = np.real(fft_shift)
+        imag_part = np.imag(fft_shift)
+        
+        real_plot = PlotWidget()
+        real_plot.setBackground('#1A1A2A')
+        real_plot.setFixedHeight(200)
+        real_slice = real_part[h//2, :]
+        real_plot.plot(real_slice, pen=pg.mkPen(color='#50C878', width=2))
+        real_plot.setLabel('left', 'Re(F)')
+        real_plot.setLabel('bottom', 'Frecuencia')
+        real_plot.showGrid(x=True, y=True, alpha=0.2)
+        
+        imag_plot = PlotWidget()
+        imag_plot.setBackground('#1A1A2A')
+        imag_plot.setFixedHeight(200)
+        imag_slice = imag_part[h//2, :]
+        imag_plot.plot(imag_slice, pen=pg.mkPen(color='#FF6B9D', width=2))
+        imag_plot.setLabel('left', 'Im(F)')
+        imag_plot.setLabel('bottom', 'Frecuencia')
+        imag_plot.showGrid(x=True, y=True, alpha=0.2)
+        
+        # Densidad espectral de potencia 2D
+        psd_2d = power_spectrum / np.sum(power_spectrum)
+        psd_log = np.log10(psd_2d + 1e-12)
+        psd_img = pg.ImageItem(psd_log)
+        psd_img.setLookupTable(create_colormap('hot'))
+        psd_plot = PlotWidget()
+        psd_plot.setBackground('#1A1A2A')
+        psd_plot.setFixedHeight(200)
+        psd_plot.addItem(psd_img)
+        psd_plot.setLabel('left', 'Y')
+        psd_plot.setLabel('bottom', 'X')
+        
+        fourier_grid.addWidget(self.create_chart_card("📈 Componente Real Re(F)", real_plot), 0, 0)
+        fourier_grid.addWidget(self.create_chart_card("📉 Componente Imaginaria Im(F)", imag_plot), 0, 1)
+        fourier_grid.addWidget(self.create_chart_card("🔥 Densidad Espectral de Potencia 2D", psd_plot), 0, 2)
+        
+        # Frecuencias radiales y angulares
+        center_y, center_x = h // 2, w // 2
+        y_coords, x_coords = np.ogrid[:h, :w]
+        r = np.sqrt((x_coords - center_x)**2 + (y_coords - center_y)**2)
+        theta = np.arctan2(y_coords - center_y, x_coords - center_x)
+        
+        # Perfil radial
+        max_r = int(min(center_x, center_y))
+        radial_profile = np.zeros(max_r)
+        for i in range(max_r):
+            mask = (r >= i) & (r < i + 1)
+            if np.sum(mask) > 0:
+                radial_profile[i] = np.mean(magnitude[mask])
+        
+        radial_plot = PlotWidget()
+        radial_plot.setBackground('#1A1A2A')
+        radial_plot.setFixedHeight(200)
+        radial_plot.plot(radial_profile, pen=pg.mkPen(color='#FFD700', width=2))
+        radial_plot.setLabel('left', 'Magnitud')
+        radial_plot.setLabel('bottom', 'Frecuencia Radial')
+        radial_plot.showGrid(x=True, y=True, alpha=0.2)
+        
+        # Perfil angular
+        n_angles = 360
+        angular_profile = np.zeros(n_angles)
+        for i in range(n_angles):
+            angle_min = np.deg2rad(i - 1)
+            angle_max = np.deg2rad(i + 1)
+            mask = (theta >= angle_min) & (theta < angle_max)
+            if np.sum(mask) > 0:
+                angular_profile[i] = np.mean(magnitude[mask])
+        
+        angular_plot = PlotWidget()
+        angular_plot.setBackground('#1A1A2A')
+        angular_plot.setFixedHeight(200)
+        angles = np.arange(n_angles)
+        angular_plot.plot(angles, angular_profile, pen=pg.mkPen(color='#00CED1', width=2))
+        angular_plot.setLabel('left', 'Magnitud')
+        angular_plot.setLabel('bottom', 'Ángulo (grados)')
+        angular_plot.showGrid(x=True, y=True, alpha=0.2)
+        
+        fourier_grid.addWidget(self.create_chart_card("🎯 Perfil Radial de Frecuencias", radial_plot), 1, 0)
+        fourier_grid.addWidget(self.create_chart_card("🔄 Perfil Angular de Frecuencias", angular_plot), 1, 1)
+        
+        # Barra de frecuencias dominantes
         flat_mag = magnitude.flatten()
         top_indices = np.argpartition(flat_mag, -10)[-10:]
         top_freqs = sorted(flat_mag[top_indices], reverse=True)
         
         freq_bar = PlotWidget()
         freq_bar.setBackground('#1A1A2A')
-        freq_bar.setFixedHeight(180)
-        x = np.arange(len(top_freqs))
-        bargraph = pg.BarGraphItem(x=x, height=top_freqs, width=0.6, brush='#8296FF')
+        freq_bar.setFixedHeight(200)
+        x_bar = np.arange(len(top_freqs))
+        bargraph = pg.BarGraphItem(x=x_bar, height=top_freqs, width=0.6, brush='#8296FF')
         freq_bar.addItem(bargraph)
         freq_bar.setLabel('left', 'Magnitud')
         freq_bar.setLabel('bottom', 'Top Frecuencias')
         freq_bar.showGrid(y=True, alpha=0.2)
         
-        self.main_layout.addWidget(self.create_chart_card("🎯 Top 10 Frecuencias Dominantes", freq_bar))
+        fourier_grid.addWidget(self.create_chart_card("🎯 Top 10 Frecuencias Dominantes", freq_bar), 1, 2)
+        
+        fourier_container = QWidget()
+        fourier_container.setLayout(fourier_grid)
+        self.main_layout.addWidget(fourier_container)
+        
+        # Sección Transformada de Laplace (aproximación discreta)
+        laplace_section = QLabel("⚡ TRANSFORMADA DE LAPLACE (Aproximación Discreta)")
+        laplace_section.setStyleSheet(fft_section.styleSheet())
+        self.main_layout.addWidget(laplace_section)
+        
+        laplace_grid = QGridLayout()
+        laplace_grid.setSpacing(10)
+        
+        # Aproximación de Laplace usando decaimiento exponencial
+        # L{f(t)} ≈ Σ f(n)e^(-sn) donde s = σ + jω
+        t = np.linspace(0, 10, gray.shape[1])
+        signal_1d = gray[h//2, :]
+        
+        # Respuesta en frecuencia para diferentes valores de sigma
+        sigmas = np.linspace(0.01, 2, 100)
+        omega = np.linspace(-np.pi, np.pi, 100)
+        
+        laplace_mag = np.zeros((len(sigmas), len(omega)))
+        for i, sigma in enumerate(sigmas):
+            for j, w in enumerate(omega):
+                s = sigma + 1j * w
+                dt = t[1] - t[0] if len(t) > 1 else 1
+                laplace_val = np.sum(signal_1d * np.exp(-s * t[:len(signal_1d)])) * dt
+                laplace_mag[i, j] = np.abs(laplace_val)
+        
+        laplace_img = pg.ImageItem(np.log10(laplace_mag + 1))
+        laplace_img.setLookupTable(create_colormap('turbo'))
+        laplace_plot = PlotWidget()
+        laplace_plot.setBackground('#1A1A2A')
+        laplace_plot.setFixedHeight(200)
+        laplace_plot.addItem(laplace_img)
+        laplace_plot.setLabel('left', 'σ (parte real)')
+        laplace_plot.setLabel('bottom', 'ω (parte imaginaria)')
+        
+        # Respuesta al impulso (inversa aproximada)
+        impulse_response = np.fft.ifft(magnitude[h//2, :]).real
+        impulse_plot = PlotWidget()
+        impulse_plot.setBackground('#1A1A2A')
+        impulse_plot.setFixedHeight(200)
+        impulse_plot.plot(impulse_response[:200], pen=pg.mkPen(color='#FF69B4', width=2))
+        impulse_plot.setLabel('left', 'Amplitud')
+        impulse_plot.setLabel('bottom', 'Tiempo')
+        impulse_plot.showGrid(x=True, y=True, alpha=0.2)
+        
+        # Diagrama de polos y ceros (aproximado)
+        zeros_poles_plot = PlotWidget()
+        zeros_poles_plot.setBackground('#1A1A2A')
+        zeros_poles_plot.setFixedHeight(200)
+        
+        # Encontrar máximos locales como "polos"
+        from scipy.signal import find_peaks
+        peaks, _ = find_peaks(np.abs(signal_1d), height=np.mean(signal_1d))
+        
+        # Círculo unitario
+        theta_circle = np.linspace(0, 2*np.pi, 100)
+        x_circle = np.cos(theta_circle)
+        y_circle = np.sin(theta_circle)
+        zeros_poles_plot.plot(x_circle, y_circle, pen=pg.mkPen(color='#FFFFFF', width=1, style=Qt.PenStyle.DashLine))
+        
+        # Polos (x) y ceros (o)
+        if len(peaks) > 0:
+            pole_angles = 2 * np.pi * peaks / len(signal_1d)
+            pole_x = 0.8 * np.cos(pole_angles)
+            pole_y = 0.8 * np.sin(pole_angles)
+            zeros_poles_plot.plot(pole_x, pole_y, pen=None, symbol='x', symbolSize=12, symbolBrush='#FF6B6B')
+        
+        zeros_poles_plot.setLabel('left', 'Imaginario')
+        zeros_poles_plot.setLabel('bottom', 'Real')
+        zeros_poles_plot.showGrid(x=True, y=True, alpha=0.2)
+        zeros_poles_plot.setAspectLocked(True)
+        
+        laplace_grid.addWidget(self.create_chart_card("🌐 Transformada de Laplace |L{f}(s)|", laplace_plot), 0, 0)
+        laplace_grid.addWidget(self.create_chart_card("⚡ Respuesta al Impulso h(t)", impulse_plot), 0, 1)
+        laplace_grid.addWidget(self.create_chart_card("⭕ Diagrama Polos-Ceros (Plano S)", zeros_poles_plot), 0, 2)
+        
+        laplace_container = QWidget()
+        laplace_container.setLayout(laplace_grid)
+        self.main_layout.addWidget(laplace_container)
 
 class TooltipLabel(QLabel):
     def __init__(self, parent=None):
