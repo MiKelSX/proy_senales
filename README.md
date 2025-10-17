@@ -21,8 +21,21 @@ Esta aplicación convierte cualquier imagen en una visualización 3D de ondas de
 - **Sombras y profundidad 3D**
 
 <p align="center">
-  <img src="https://placehold.co/600x350/222/ccd6ff?text=Demo+3D+Waves" alt="Demo 3D Waves" style="border-radius:20px;box-shadow:0 0 32px #9f5cff;">
+  <img src="img/11.png" width="700">
 </p>
+<p align="center">
+  <img src="img/22.png" width="700">
+</p>
+<p align="center">
+  <img src="img/33.png" width="700">
+</p>
+<p align="center">
+  <img src="img/44.png" width="700">
+</p>
+<p align="center">
+  <img src="img/55.png" width="700">
+</p>
+
 
 ---
 
@@ -147,7 +160,13 @@ python app.py
 ## 📸 **Demo**
 
 <p align="center">
-  <img src="https://placehold.co/600x350/222/9f5cff?text=FFT+Results+Window" alt="FFT Results Window" style="border-radius:20px;box-shadow:0 0 32px #9f5cff;">
+  <img src="img/1.png" width="700">
+</p>
+<p align="center">
+  <img src="img/2.png" width="700">
+</p>
+<p align="center">
+  <img src="img/3.png" width="700">
 </p>
 
 ---
