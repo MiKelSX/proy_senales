@@ -26,7 +26,7 @@ Wave Visualizer 3D es una aplicación profesional de procesamiento de señales q
 **Nuestra solución**: Interfaz gráfica intuitiva sin código, dashboard integrado, análisis en <2 segundos, y controles interactivos para exploración inmediata.
 
 <p align="center">
-  <img src="img/11.png" width="800">
+  <img src="img/1.png" width="800">
   <br>
   <em>Interfaz principal con visualización 3D de ondas de color</em>
 </p>
@@ -46,7 +46,7 @@ Wave Visualizer 3D es una aplicación profesional de procesamiento de señales q
 ### 📊 Dashboard Analítico Completo
 
 <p align="center">
-  <img src="img/22.png" width="800">
+  <img src="img/3-2.png" width="800">
   <br>
   <em>Dashboard con métricas espectrales y 15 gráficos interactivos</em>
 </p>
@@ -457,7 +457,7 @@ python app.py
    - "⚡ FFT View" para espectro puro
 
 <p align="center">
-  <img src="img/44.png" width="800">
+  <img src="img/1.png" width="800">
   <br>
   <em>Panel de control completo con todos los parámetros</em>
 </p>
@@ -506,7 +506,10 @@ python app.py
 - **Centroide desplazado**: Desalineación del paciente o equipo
 
 <p align="center">
-  <img src="img/55.png" width="800">
+  <img src="img/3-1.png" width="800">
+  <img src="img/3-2.png" width="800">
+  <img src="img/3-3.png" width="800">
+  <img src="img/3-4.png" width="800">
   <br>
   <em>Dashboard completo con análisis de Transformada de Laplace</em>
 </p>
