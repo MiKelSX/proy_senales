@@ -35,7 +35,7 @@ Wave Visualizer 3D es una aplicación profesional de procesamiento de señales q
 
 ## Características
 
-### 🎯 Visualización 3D Avanzada
+### Visualización 3D Avanzada
 
 **Motor de renderizado OpenGL** con tasas de actualización superiores a 50 FPS incluso con 40,000 puntos simultáneos. El grid se adapta automáticamente a las dimensiones de la imagen, garantizando proporciones visuales correctas desde 512×512 hasta 4096×4096 píxeles.
 
@@ -43,7 +43,7 @@ Wave Visualizer 3D es una aplicación profesional de procesamiento de señales q
 
 **Líneas de conectividad configurables**: Cuatro modos disponibles (sin líneas, horizontales, verticales, o malla completa) para visualizar la topología de la superficie espectral.
 
-### 📊 Dashboard Analítico Completo
+### Dashboard Analítico Completo
 
 <p align="center">
   <img src="img/3-2.png" width="800">
@@ -74,7 +74,7 @@ Wave Visualizer 3D es una aplicación profesional de procesamiento de señales q
 - Respuesta al impulso temporal
 - Diagrama de polos y ceros
 
-### 🌊 Sistema de Animación Inteligente
+### Sistema de Animación Inteligente
 
 **Animación por prioridad de brillo**: Los colores brillantes (alta energía) se animan primero mediante ordenamiento automático, seguidos por colores oscuros, creando un efecto de propagación natural que refleja la distribución de energía real de la imagen.
 
@@ -88,7 +88,7 @@ Wave Visualizer 3D es una aplicación profesional de procesamiento de señales q
   <em>Sistema de animación con ondas propagándose según intensidad</em>
 </p>
 
-### 🔍 Tooltips Interactivos
+### Tooltips Interactivos
 
 **Información en tiempo real**: Al pasar el cursor sobre cualquier punto de la visualización 3D, se muestra:
 - Posición exacta en píxeles de la imagen original
@@ -98,7 +98,7 @@ Wave Visualizer 3D es una aplicación profesional de procesamiento de señales q
 
 **Detección optimizada**: Sistema de proximidad que identifica el punto más cercano al cursor con actualización cada 100ms para fluidez máxima.
 
-### 🎨 Colormaps Científicos Personalizados
+### Colormaps Científicos Personalizados
 
 **5 esquemas de color profesionales** generados mediante interpolación cúbica con 256 niveles de gradiente:
 
@@ -464,7 +464,7 @@ python app.py
 
 ### Casos de Uso Profesionales
 
-#### 📸 Análisis de Calidad de Imagen
+#### Análisis de Calidad de Imagen
 
 **Objetivo**: Evaluar nitidez, ruido y compresión
 
@@ -475,7 +475,7 @@ python app.py
 - Entropía alta + ancho de banda amplio: Imagen compleja
 - Entropía baja: Sobre-compresión o contenido simple
 
-#### 🧵 Caracterización de Texturas
+#### Caracterización de Texturas
 
 **Objetivo**: Identificar periodicidad y direccionalidad
 
@@ -485,7 +485,7 @@ python app.py
 - **Ancho de banda estrecho**: Textura regular
 - **Ancho de banda amplio**: Textura irregular o aleatoria
 
-#### 🔬 Detección de Manipulación Digital
+#### Detección de Manipulación Digital
 
 **Objetivo**: Identificar ediciones o falsificaciones
 
@@ -495,7 +495,7 @@ python app.py
 - Asimetría en perfil angular: Escalado no uniforme
 - Bloques regulares en FFT: Recompresión múltiple
 
-#### 🏥 Imágenes Médicas
+#### Imágenes Médicas
 
 **Objetivo**: Control de calidad de equipos de imagen
 
@@ -518,7 +518,7 @@ python app.py
 
 ## Problemas Comunes
 
-### 🔴 Error: "No module named PyQt6"
+### Error: "No module named PyQt6"
 
 **Síntomas**: Aplicación no inicia, mensaje de módulo faltante
 
@@ -533,7 +533,7 @@ Si persiste (Windows), instalar Visual C++ Redistributable:
 - Ejecutar instalador
 - Reiniciar sistema
 
-### 🔴 Pantalla negra en visualización 3D
+### Pantalla negra en visualización 3D
 
 **Síntomas**: Panel 3D aparece negro sin gráficos, o error de OpenGL
 
@@ -573,7 +573,7 @@ sudo apt install mesa-vulkan-drivers mesa-utils
 __NV_PRIME_RENDER_OFFLOAD=1 python app.py
 ```
 
-### 🔴 Rendimiento bajo (FPS < 20)
+### Rendimiento bajo (FPS < 20)
 
 **Síntomas**: Movimientos entrecortados, lag al rotar cámara
 
@@ -603,7 +603,7 @@ __NV_PRIME_RENDER_OFFLOAD=1 python app.py
    - Añadir RAM (mínimo 16 GB)
    - Actualizar GPU a modelo compatible OpenGL 4.0+
 
-### 🔴 Error de colormap (FileNotFoundError)
+### Error de colormap (FileNotFoundError)
 
 **Síntomas**: Error al abrir dashboard sobre archivos de colormaps faltantes
 
@@ -616,7 +616,7 @@ pip install --upgrade scipy==1.11.4
 
 El sistema incluye generación automática de colormaps, no depende de archivos externos. Solo requiere SciPy para interpolación.
 
-### 🔴 Memoria RAM insuficiente (MemoryError)
+### Memoria RAM insuficiente (MemoryError)
 
 **Síntomas**: Aplicación se cierra inesperadamente, sistema lento
 
@@ -633,7 +633,7 @@ El sistema incluye generación automática de colormaps, no depende de archivos 
 - Memoria virtual → Cambiar
 - Establecer: Mínimo = RAM×1.5, Máximo = RAM×3
 
-### 🔴 Tooltips no aparecen o son imprecisos
+### Tooltips no aparecen o son imprecisos
 
 **Síntomas**: Información no se muestra al pasar cursor, o muestra punto incorrecto
 
@@ -648,7 +648,7 @@ El sistema incluye generación automática de colormaps, no depende de archivos 
 
 **Limitación conocida**: Precisión disminuye con ángulos >75° o zoom extremo. Próximas versiones implementarán ray-casting 3D completo.
 
-### 🔴 Error al cargar imágenes
+### Error al cargar imágenes
 
 **Síntomas**: "Cannot identify image file" o error de formato
 
@@ -668,7 +668,7 @@ Conversión rápida con Pillow (si está instalado):
 python -c "from PIL import Image; Image.open('imagen.webp').convert('RGB').save('imagen.png')"
 ```
 
-### 🔴 Dashboard no se abre o está en blanco
+### Dashboard no se abre o está en blanco
 
 **Síntomas**: Ventana vacía, o error al abrir
 
